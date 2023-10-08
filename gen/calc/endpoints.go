@@ -35,6 +35,11 @@ func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 func NewMultiplyEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*MultiplyPayload)
-		return s.Multiply(ctx, p)
+		res, err := s.Multiply(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		vres := NewViewedMultiplyresponse(res, "default")
+		return vres, nil
 	}
 }

@@ -9,12 +9,14 @@ package calc
 
 import (
 	"context"
+
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
 )
 
 // The calc service performs operations on numbers.
 type Service interface {
 	// Multiply implements multiply.
-	Multiply(context.Context, *MultiplyPayload) (res int, err error)
+	Multiply(context.Context, *MultiplyPayload) (res *Multiplyresponse, err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -33,4 +35,42 @@ type MultiplyPayload struct {
 	A int
 	// Right operand
 	B int
+}
+
+// Multiplyresponse is the result type of the calc service multiply method.
+type Multiplyresponse struct {
+	// Result of multiplication
+	Multiple int
+}
+
+// NewMultiplyresponse initializes result type Multiplyresponse from viewed
+// result type Multiplyresponse.
+func NewMultiplyresponse(vres *calcviews.Multiplyresponse) *Multiplyresponse {
+	return newMultiplyresponse(vres.Projected)
+}
+
+// NewViewedMultiplyresponse initializes viewed result type Multiplyresponse
+// from result type Multiplyresponse using the given view.
+func NewViewedMultiplyresponse(res *Multiplyresponse, view string) *calcviews.Multiplyresponse {
+	p := newMultiplyresponseView(res)
+	return &calcviews.Multiplyresponse{Projected: p, View: "default"}
+}
+
+// newMultiplyresponse converts projected type Multiplyresponse to service type
+// Multiplyresponse.
+func newMultiplyresponse(vres *calcviews.MultiplyresponseView) *Multiplyresponse {
+	res := &Multiplyresponse{}
+	if vres.Multiple != nil {
+		res.Multiple = *vres.Multiple
+	}
+	return res
+}
+
+// newMultiplyresponseView projects result type Multiplyresponse to projected
+// type MultiplyresponseView using the "default" view.
+func newMultiplyresponseView(res *Multiplyresponse) *calcviews.MultiplyresponseView {
+	vres := &calcviews.MultiplyresponseView{
+		Multiple: &res.Multiple,
+	}
+	return vres
 }

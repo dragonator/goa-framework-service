@@ -28,7 +28,10 @@ func UsageCommands() string {
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` calc multiply --a 5952269320165453119 --b 1828520165265779840` + "\n" +
+	return os.Args[0] + ` calc multiply --body '{
+      "a": 546803495890724710,
+      "b": 7837387407375911615
+   }'` + "\n" +
 		""
 }
 
@@ -44,9 +47,8 @@ func ParseEndpoint(
 	var (
 		calcFlags = flag.NewFlagSet("calc", flag.ContinueOnError)
 
-		calcMultiplyFlags = flag.NewFlagSet("multiply", flag.ExitOnError)
-		calcMultiplyAFlag = calcMultiplyFlags.String("a", "REQUIRED", "Left operand")
-		calcMultiplyBFlag = calcMultiplyFlags.String("b", "REQUIRED", "Right operand")
+		calcMultiplyFlags    = flag.NewFlagSet("multiply", flag.ExitOnError)
+		calcMultiplyBodyFlag = calcMultiplyFlags.String("body", "REQUIRED", "")
 	)
 	calcFlags.Usage = calcUsage
 	calcMultiplyFlags.Usage = calcMultiplyUsage
@@ -115,7 +117,7 @@ func ParseEndpoint(
 			switch epn {
 			case "multiply":
 				endpoint = c.Multiply()
-				data, err = calcc.BuildMultiplyPayload(*calcMultiplyAFlag, *calcMultiplyBFlag)
+				data, err = calcc.BuildMultiplyPayload(*calcMultiplyBodyFlag)
 			}
 		}
 	}
@@ -140,13 +142,15 @@ Additional help:
 `, os.Args[0])
 }
 func calcMultiplyUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] calc multiply -a INT -b INT
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] calc multiply -body JSON
 
 Multiply implements multiply.
-    -a INT: Left operand
-    -b INT: Right operand
+    -body JSON: 
 
 Example:
-    %[1]s calc multiply --a 5952269320165453119 --b 1828520165265779840
+    %[1]s calc multiply --body '{
+      "a": 546803495890724710,
+      "b": 7837387407375911615
+   }'
 `, os.Args[0])
 }

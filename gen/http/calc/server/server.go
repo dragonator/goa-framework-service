@@ -54,7 +54,7 @@ func New(
 	}
 	return &Server{
 		Mounts: []*MountPoint{
-			{"Multiply", "GET", "/multiply/{a}/{b}"},
+			{"Multiply", "POST", "/multiply"},
 			{"./gen/http/openapi.json", "GET", "/openapi.json"},
 		},
 		Multiply:           NewMultiplyHandler(e.Multiply, mux, decoder, encoder, errhandler, formatter),
@@ -93,7 +93,7 @@ func MountMultiplyHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("GET", "/multiply/{a}/{b}", f)
+	mux.Handle("POST", "/multiply", f)
 }
 
 // NewMultiplyHandler creates a HTTP handler which loads the HTTP request and

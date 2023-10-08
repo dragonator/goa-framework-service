@@ -9,13 +9,53 @@ package server
 
 import (
 	calc "github.com/dragonator/goa-framework-service/gen/calc"
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
+	goa "goa.design/goa/v3/pkg"
 )
 
+// MultiplyRequestBody is the type of the "calc" service "multiply" endpoint
+// HTTP request body.
+type MultiplyRequestBody struct {
+	// Left operand
+	A *int `form:"a,omitempty" json:"a,omitempty" xml:"a,omitempty"`
+	// Right operand
+	B *int `form:"b,omitempty" json:"b,omitempty" xml:"b,omitempty"`
+}
+
+// MultiplyResponseBody is the type of the "calc" service "multiply" endpoint
+// HTTP response body.
+type MultiplyResponseBody struct {
+	// Result of multiplication
+	Multiple int `form:"multiple" json:"multiple" xml:"multiple"`
+}
+
+// NewMultiplyResponseBody builds the HTTP response body from the result of the
+// "multiply" endpoint of the "calc" service.
+func NewMultiplyResponseBody(res *calcviews.MultiplyresponseView) *MultiplyResponseBody {
+	body := &MultiplyResponseBody{
+		Multiple: *res.Multiple,
+	}
+	return body
+}
+
 // NewMultiplyPayload builds a calc service multiply endpoint payload.
-func NewMultiplyPayload(a int, b int) *calc.MultiplyPayload {
-	v := &calc.MultiplyPayload{}
-	v.A = a
-	v.B = b
+func NewMultiplyPayload(body *MultiplyRequestBody) *calc.MultiplyPayload {
+	v := &calc.MultiplyPayload{
+		A: *body.A,
+		B: *body.B,
+	}
 
 	return v
+}
+
+// ValidateMultiplyRequestBody runs the validations defined on
+// MultiplyRequestBody
+func ValidateMultiplyRequestBody(body *MultiplyRequestBody) (err error) {
+	if body.A == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("a", "body"))
+	}
+	if body.B == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("b", "body"))
+	}
+	return
 }

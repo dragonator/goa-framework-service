@@ -26,11 +26,11 @@ func NewClient(multiply goa.Endpoint) *Client {
 }
 
 // Multiply calls the "multiply" endpoint of the "calc" service.
-func (c *Client) Multiply(ctx context.Context, p *MultiplyPayload) (res int, err error) {
+func (c *Client) Multiply(ctx context.Context, p *MultiplyPayload) (res *Multiplyresponse, err error) {
 	var ires any
 	ires, err = c.MultiplyEndpoint(ctx, p)
 	if err != nil {
 		return
 	}
-	return ires.(int), nil
+	return ires.(*Multiplyresponse), nil
 }

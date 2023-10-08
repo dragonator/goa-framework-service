@@ -8,37 +8,27 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
-	"strconv"
 
 	calc "github.com/dragonator/goa-framework-service/gen/calc"
 )
 
 // BuildMultiplyPayload builds the payload for the calc multiply endpoint from
 // CLI flags.
-func BuildMultiplyPayload(calcMultiplyA string, calcMultiplyB string) (*calc.MultiplyPayload, error) {
+func BuildMultiplyPayload(calcMultiplyBody string) (*calc.MultiplyPayload, error) {
 	var err error
-	var a int
+	var body MultiplyRequestBody
 	{
-		var v int64
-		v, err = strconv.ParseInt(calcMultiplyA, 10, strconv.IntSize)
-		a = int(v)
+		err = json.Unmarshal([]byte(calcMultiplyBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid value for a, must be INT")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"a\": 546803495890724710,\n      \"b\": 7837387407375911615\n   }'")
 		}
 	}
-	var b int
-	{
-		var v int64
-		v, err = strconv.ParseInt(calcMultiplyB, 10, strconv.IntSize)
-		b = int(v)
-		if err != nil {
-			return nil, fmt.Errorf("invalid value for b, must be INT")
-		}
+	v := &calc.MultiplyPayload{
+		A: body.A,
+		B: body.B,
 	}
-	v := &calc.MultiplyPayload{}
-	v.A = a
-	v.B = b
 
 	return v, nil
 }

@@ -11,6 +11,7 @@ import (
 	"context"
 
 	calc "github.com/dragonator/goa-framework-service/gen/calc"
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
 	calcpb "github.com/dragonator/goa-framework-service/gen/grpc/calc/pb"
 	goagrpc "goa.design/goa/v3/grpc"
 	"google.golang.org/grpc/metadata"
@@ -19,10 +20,12 @@ import (
 // EncodeMultiplyResponse encodes responses from the "calc" service "multiply"
 // endpoint.
 func EncodeMultiplyResponse(ctx context.Context, v any, hdr, trlr *metadata.MD) (any, error) {
-	result, ok := v.(int)
+	vres, ok := v.(*calcviews.Multiplyresponse)
 	if !ok {
-		return nil, goagrpc.ErrInvalidType("calc", "multiply", "int", v)
+		return nil, goagrpc.ErrInvalidType("calc", "multiply", "*calcviews.Multiplyresponse", v)
 	}
+	result := vres.Projected
+	(*hdr).Append("goa-view", vres.View)
 	resp := NewProtoMultiplyResponse(result)
 	return resp, nil
 }

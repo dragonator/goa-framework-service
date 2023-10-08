@@ -19,7 +19,12 @@ func NewCalc(logger *log.Logger) calc.Service {
 }
 
 // Multiply implements multiply.
-func (s *calcsrvc) Multiply(ctx context.Context, p *calc.MultiplyPayload) (res int, err error) {
+func (s *calcsrvc) Multiply(ctx context.Context, p *calc.MultiplyPayload) (res *calc.Multiplyresponse, err error) {
 	s.logger.Print("calc.multiply")
-	return p.A * p.B, nil
+
+	multiple := p.A * p.B
+
+	return &calc.Multiplyresponse{
+		Multiple: multiple,
+	}, nil
 }

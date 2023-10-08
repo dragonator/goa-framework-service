@@ -6,3 +6,44 @@
 // $ goa gen github.com/dragonator/goa-framework-service/design
 
 package client
+
+import (
+	calc "github.com/dragonator/goa-framework-service/gen/calc"
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
+)
+
+// MultiplyRequestBody is the type of the "calc" service "multiply" endpoint
+// HTTP request body.
+type MultiplyRequestBody struct {
+	// Left operand
+	A int `form:"a" json:"a" xml:"a"`
+	// Right operand
+	B int `form:"b" json:"b" xml:"b"`
+}
+
+// MultiplyResponseBody is the type of the "calc" service "multiply" endpoint
+// HTTP response body.
+type MultiplyResponseBody struct {
+	// Result of multiplication
+	Multiple *int `form:"multiple,omitempty" json:"multiple,omitempty" xml:"multiple,omitempty"`
+}
+
+// NewMultiplyRequestBody builds the HTTP request body from the payload of the
+// "multiply" endpoint of the "calc" service.
+func NewMultiplyRequestBody(p *calc.MultiplyPayload) *MultiplyRequestBody {
+	body := &MultiplyRequestBody{
+		A: p.A,
+		B: p.B,
+	}
+	return body
+}
+
+// NewMultiplyresponseViewOK builds a "calc" service "multiply" endpoint result
+// from a HTTP "OK" response.
+func NewMultiplyresponseViewOK(body *MultiplyResponseBody) *calcviews.MultiplyresponseView {
+	v := &calcviews.MultiplyresponseView{
+		Multiple: body.Multiple,
+	}
+
+	return v
+}

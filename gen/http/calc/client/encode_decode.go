@@ -15,26 +15,15 @@ import (
 	"net/url"
 
 	calc "github.com/dragonator/goa-framework-service/gen/calc"
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
 	goahttp "goa.design/goa/v3/http"
 )
 
 // BuildMultiplyRequest instantiates a HTTP request object with method and path
 // set to call the "calc" service "multiply" endpoint
 func (c *Client) BuildMultiplyRequest(ctx context.Context, v any) (*http.Request, error) {
-	var (
-		a int
-		b int
-	)
-	{
-		p, ok := v.(*calc.MultiplyPayload)
-		if !ok {
-			return nil, goahttp.ErrInvalidType("calc", "multiply", "*calc.MultiplyPayload", v)
-		}
-		a = p.A
-		b = p.B
-	}
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: MultiplyCalcPath(a, b)}
-	req, err := http.NewRequest("GET", u.String(), nil)
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: MultiplyCalcPath()}
+	req, err := http.NewRequest("POST", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("calc", "multiply", u.String(), err)
 	}
@@ -43,6 +32,22 @@ func (c *Client) BuildMultiplyRequest(ctx context.Context, v any) (*http.Request
 	}
 
 	return req, nil
+}
+
+// EncodeMultiplyRequest returns an encoder for requests sent to the calc
+// multiply server.
+func EncodeMultiplyRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*calc.MultiplyPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("calc", "multiply", "*calc.MultiplyPayload", v)
+		}
+		body := NewMultiplyRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("calc", "multiply", err)
+		}
+		return nil
+	}
 }
 
 // DecodeMultiplyResponse returns a decoder for responses returned by the calc
@@ -65,14 +70,21 @@ func DecodeMultiplyResponse(decoder func(*http.Response) goahttp.Decoder, restor
 		switch resp.StatusCode {
 		case http.StatusOK:
 			var (
-				body int
+				body MultiplyResponseBody
 				err  error
 			)
 			err = decoder(resp).Decode(&body)
 			if err != nil {
 				return nil, goahttp.ErrDecodingError("calc", "multiply", err)
 			}
-			return body, nil
+			p := NewMultiplyresponseViewOK(&body)
+			view := "default"
+			vres := &calcviews.Multiplyresponse{Projected: p, View: view}
+			if err = calcviews.ValidateMultiplyresponse(vres); err != nil {
+				return nil, goahttp.ErrValidationError("calc", "multiply", err)
+			}
+			res := calc.NewMultiplyresponse(vres)
+			return res, nil
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("calc", "multiply", resp.StatusCode, string(body))

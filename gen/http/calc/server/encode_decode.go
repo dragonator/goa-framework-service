@@ -9,9 +9,10 @@ package server
 
 import (
 	"context"
+	"io"
 	"net/http"
-	"strconv"
 
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 )
@@ -20,9 +21,9 @@ import (
 // multiply endpoint.
 func EncodeMultiplyResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		res, _ := v.(int)
+		res := v.(*calcviews.Multiplyresponse)
 		enc := encoder(ctx, w)
-		body := res
+		body := NewMultiplyResponseBody(res.Projected)
 		w.WriteHeader(http.StatusOK)
 		return enc.Encode(body)
 	}
@@ -33,32 +34,21 @@ func EncodeMultiplyResponse(encoder func(context.Context, http.ResponseWriter) g
 func DecodeMultiplyRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			a   int
-			b   int
-			err error
-
-			params = mux.Vars(r)
+			body MultiplyRequestBody
+			err  error
 		)
-		{
-			aRaw := params["a"]
-			v, err2 := strconv.ParseInt(aRaw, 10, strconv.IntSize)
-			if err2 != nil {
-				err = goa.MergeErrors(err, goa.InvalidFieldTypeError("a", aRaw, "integer"))
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
 			}
-			a = int(v)
+			return nil, goa.DecodePayloadError(err.Error())
 		}
-		{
-			bRaw := params["b"]
-			v, err2 := strconv.ParseInt(bRaw, 10, strconv.IntSize)
-			if err2 != nil {
-				err = goa.MergeErrors(err, goa.InvalidFieldTypeError("b", bRaw, "integer"))
-			}
-			b = int(v)
-		}
+		err = ValidateMultiplyRequestBody(&body)
 		if err != nil {
 			return nil, err
 		}
-		payload := NewMultiplyPayload(a, b)
+		payload := NewMultiplyPayload(&body)
 
 		return payload, nil
 	}

@@ -54,10 +54,15 @@ func NewClient(
 // multiply server.
 func (c *Client) Multiply() goa.Endpoint {
 	var (
+		encodeRequest  = EncodeMultiplyRequest(c.encoder)
 		decodeResponse = DecodeMultiplyResponse(c.decoder, c.RestoreResponseBody)
 	)
 	return func(ctx context.Context, v any) (any, error) {
 		req, err := c.BuildMultiplyRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
 		if err != nil {
 			return nil, err
 		}

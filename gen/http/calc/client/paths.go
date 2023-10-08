@@ -7,11 +7,7 @@
 
 package client
 
-import (
-	"fmt"
-)
-
 // MultiplyCalcPath returns the URL path to the calc service multiply HTTP endpoint.
-func MultiplyCalcPath(a int, b int) string {
-	return fmt.Sprintf("/multiply/%v/%v", a, b)
+func MultiplyCalcPath() string {
+	return "/multiply"
 }

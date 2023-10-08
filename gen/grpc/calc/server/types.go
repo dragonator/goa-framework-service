@@ -9,6 +9,7 @@ package server
 
 import (
 	calc "github.com/dragonator/goa-framework-service/gen/calc"
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
 	calcpb "github.com/dragonator/goa-framework-service/gen/grpc/calc/pb"
 )
 
@@ -24,8 +25,9 @@ func NewMultiplyPayload(message *calcpb.MultiplyRequest) *calc.MultiplyPayload {
 
 // NewProtoMultiplyResponse builds the gRPC response type from the result of
 // the "multiply" endpoint of the "calc" service.
-func NewProtoMultiplyResponse(result int) *calcpb.MultiplyResponse {
-	message := &calcpb.MultiplyResponse{}
-	message.Field = int32(result)
+func NewProtoMultiplyResponse(result *calcviews.MultiplyresponseView) *calcpb.MultiplyResponse {
+	message := &calcpb.MultiplyResponse{
+		Multiple: int32(*result.Multiple),
+	}
 	return message
 }

@@ -11,6 +11,7 @@ import (
 	"context"
 
 	calc "github.com/dragonator/goa-framework-service/gen/calc"
+	calcviews "github.com/dragonator/goa-framework-service/gen/calc/views"
 	calcpb "github.com/dragonator/goa-framework-service/gen/grpc/calc/pb"
 	goagrpc "goa.design/goa/v3/grpc"
 	"google.golang.org/grpc"
@@ -42,10 +43,20 @@ func EncodeMultiplyRequest(ctx context.Context, v any, md *metadata.MD) (any, er
 
 // DecodeMultiplyResponse decodes responses from the calc multiply endpoint.
 func DecodeMultiplyResponse(ctx context.Context, v any, hdr, trlr metadata.MD) (any, error) {
+	var view string
+	{
+		if vals := hdr.Get("goa-view"); len(vals) > 0 {
+			view = vals[0]
+		}
+	}
 	message, ok := v.(*calcpb.MultiplyResponse)
 	if !ok {
 		return nil, goagrpc.ErrInvalidType("calc", "multiply", "*calcpb.MultiplyResponse", v)
 	}
 	res := NewMultiplyResult(message)
-	return res, nil
+	vres := &calcviews.Multiplyresponse{Projected: res, View: view}
+	if err := calcviews.ValidateMultiplyresponse(vres); err != nil {
+		return nil, err
+	}
+	return calc.NewMultiplyresponse(vres), nil
 }
